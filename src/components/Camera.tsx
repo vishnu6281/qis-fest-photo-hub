@@ -19,7 +19,7 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { 
-          facingMode: 'environment', // Use back camera
+          facingMode: 'environment',
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
@@ -27,6 +27,7 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        await videoRef.current.play(); // Ensure video starts playing
       }
     } catch (err) {
       console.error('Error accessing camera:', err);
@@ -58,14 +59,12 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
-    // Flip horizontally if using front camera
-    context.translate(canvas.width, 0);
-    context.scale(-1, 1);
-    context.drawImage(video, 0, 0);
-    context.setTransform(1, 0, 0, 1, 0, 0);
+    // Draw the video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     try {
-      const blob = await new Promise<Blob>((resolve, reject) => 
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
           (blob) => {
             if (blob) resolve(blob);
@@ -73,20 +72,20 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
           },
           'image/jpeg',
           0.8
-        )
-      );
-
-      const compressedFile = await imageCompression(new File([blob], "photo.jpg", {
-        type: 'image/jpeg'
-      }), {
-        maxSizeMB: 0.3,
-        maxWidthOrHeight: 800,
-        useWebWorker: true
+        );
       });
 
-      // Here you would typically upload the photo
+      // Compress the image
+      const compressedFile = await imageCompression(
+        new File([blob], "photo.jpg", { type: 'image/jpeg' }),
+        {
+          maxSizeMB: 0.3,
+          maxWidthOrHeight: 800,
+          useWebWorker: true
+        }
+      );
+
       console.log('Photo taken:', { name, photo: compressedFile });
-      
       stopCamera();
       onPhotoTaken();
     } catch (err) {
@@ -117,6 +116,7 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
               autoPlay
               playsInline
               muted
+              style={{ transform: 'scaleX(-1)' }}
               className="w-full rounded-lg"
             />
             <canvas ref={canvasRef} className="hidden" />
