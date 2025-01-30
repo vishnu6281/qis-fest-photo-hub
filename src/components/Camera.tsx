@@ -27,7 +27,7 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        await videoRef.current.play(); // Ensure video starts playing
+        videoRef.current.play().catch(console.error);
       }
     } catch (err) {
       console.error('Error accessing camera:', err);
@@ -52,44 +52,48 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
+    // Wait for video to be ready
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      console.log('Video not ready yet');
+      return;
+    }
+
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    // Set canvas size to match video dimensions
+    // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
-    // Draw the video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Draw the current video frame
+    context.drawImage(video, 0, 0);
 
     try {
-      // Convert canvas to blob
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Failed to create blob'));
-          },
-          'image/jpeg',
-          0.8
-        );
-      });
-
-      // Compress the image
-      const compressedFile = await imageCompression(
-        new File([blob], "photo.jpg", { type: 'image/jpeg' }),
-        {
-          maxSizeMB: 0.3,
-          maxWidthOrHeight: 800,
-          useWebWorker: true
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          throw new Error('Failed to create blob');
         }
-      );
 
-      console.log('Photo taken:', { name, photo: compressedFile });
-      stopCamera();
-      onPhotoTaken();
+        try {
+          const compressedFile = await imageCompression(
+            new File([blob], "photo.jpg", { type: 'image/jpeg' }),
+            {
+              maxSizeMB: 0.3,
+              maxWidthOrHeight: 800,
+              useWebWorker: true
+            }
+          );
+
+          console.log('Photo taken:', { name, photo: compressedFile });
+          stopCamera();
+          onPhotoTaken();
+        } catch (err) {
+          console.error('Error compressing image:', err);
+          alert('Failed to process photo. Please try again.');
+        }
+      }, 'image/jpeg', 0.8);
     } catch (err) {
-      console.error('Error processing photo:', err);
+      console.error('Error taking photo:', err);
       alert('Failed to take photo. Please try again.');
     }
   };
@@ -116,7 +120,6 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
               autoPlay
               playsInline
               muted
-              style={{ transform: 'scaleX(-1)' }}
               className="w-full rounded-lg"
             />
             <canvas ref={canvasRef} className="hidden" />
