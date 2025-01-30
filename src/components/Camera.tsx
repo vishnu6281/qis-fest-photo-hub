@@ -17,7 +17,9 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user' }
+      });
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -44,13 +46,19 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    canvas.getContext('2d')?.drawImage(video, 0, 0);
+    context.drawImage(video, 0, 0);
 
     try {
       const blob = await new Promise<Blob>((resolve) => 
-        canvas.toBlob((blob) => resolve(blob!), 'image/jpeg')
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else throw new Error('Failed to create blob');
+        }, 'image/jpeg')
       );
 
       const compressedFile = await imageCompression(new File([blob], "photo.jpg", {
@@ -67,6 +75,7 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
       onPhotoTaken();
     } catch (err) {
       console.error('Error processing photo:', err);
+      alert('Failed to take photo. Please try again.');
     }
   };
 
@@ -91,6 +100,7 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
               ref={videoRef}
               autoPlay
               playsInline
+              muted
               className="w-full rounded-lg"
             />
             <canvas ref={canvasRef} className="hidden" />

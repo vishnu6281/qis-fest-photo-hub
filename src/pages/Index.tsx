@@ -4,6 +4,7 @@ import { PhotoMosaic } from '@/components/PhotoMosaic';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { PhotoCounter } from '@/components/PhotoCounter';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [showCamera, setShowCamera] = useState(false);
@@ -12,6 +13,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background p-4">
       <header className="text-center mb-8">
+        <div className="flex justify-end mb-4">
+          <Link to="/admin">
+            <Button variant="outline">Admin Panel</Button>
+          </Link>
+        </div>
         <h1 className="text-4xl md:text-6xl font-bold text-primary mb-4">QIS FEST 2K25</h1>
         <PhotoCounter />
       </header>
