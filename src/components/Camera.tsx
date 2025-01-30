@@ -17,8 +17,12 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' }
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'environment', // Use back camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
       setStream(mediaStream);
       if (videoRef.current) {
@@ -26,6 +30,7 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
       }
     } catch (err) {
       console.error('Error accessing camera:', err);
+      alert('Failed to access camera. Please ensure camera permissions are granted.');
     }
   };
 
@@ -49,23 +54,34 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
     const context = canvas.getContext('2d');
     if (!context) return;
 
+    // Set canvas size to match video dimensions
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+    
+    // Flip horizontally if using front camera
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
     context.drawImage(video, 0, 0);
+    context.setTransform(1, 0, 0, 1, 0, 0);
 
     try {
-      const blob = await new Promise<Blob>((resolve) => 
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-          else throw new Error('Failed to create blob');
-        }, 'image/jpeg')
+      const blob = await new Promise<Blob>((resolve, reject) => 
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Failed to create blob'));
+          },
+          'image/jpeg',
+          0.8
+        )
       );
 
       const compressedFile = await imageCompression(new File([blob], "photo.jpg", {
         type: 'image/jpeg'
       }), {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 800
+        maxSizeMB: 0.3,
+        maxWidthOrHeight: 800,
+        useWebWorker: true
       });
 
       // Here you would typically upload the photo

@@ -9,16 +9,6 @@ interface Photo {
 export const PhotoMosaic = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
 
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockPhotos = Array(10).fill(null).map((_, i) => ({
-      id: `photo-${i}`,
-      url: `https://picsum.photos/100/100?random=${i}`,
-      name: `User ${i + 1}`
-    }));
-    setPhotos(mockPhotos);
-  }, []);
-
   return (
     <div className="relative min-h-[600px] w-full">
       <div className="absolute inset-0 flex items-center justify-center">
@@ -33,8 +23,8 @@ export const PhotoMosaic = () => {
             key={photo.id}
             className="photo-leaf absolute"
             style={{
-              width: '100px',
-              height: '100px',
+              width: '60px', // Reduced size
+              height: '60px', // Reduced size
               left: `${Math.random() * 80}%`,
               top: `${Math.random() * 80}%`,
               zIndex: index,
