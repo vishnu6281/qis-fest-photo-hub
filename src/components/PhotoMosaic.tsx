@@ -10,25 +10,20 @@ interface Photo {
   };
 }
 
-const colors = [
-  'from-purple-500 to-blue-500',
-  'from-blue-500 to-green-500',
-  'from-green-500 to-yellow-500',
-  'from-yellow-500 to-red-500',
-  'from-red-500 to-pink-500',
-  'from-pink-500 to-indigo-500',
-  'from-indigo-500 to-purple-500',
-];
+interface PhotoMosaicProps {
+  photos: Photo[];
+}
 
-export const PhotoMosaic = () => {
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [bgGradient, setBgGradient] = useState(colors[0]);
+export const PhotoMosaic = ({ photos }: PhotoMosaicProps) => {
+  const [animatedPhotos, setAnimatedPhotos] = useState<Photo[]>(photos);
+
+  useEffect(() => {
+    setAnimatedPhotos(photos);
+  }, [photos]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setBgGradient(colors[Math.floor(Math.random() * colors.length)]);
-      
-      setPhotos(prevPhotos => 
+      setAnimatedPhotos(prevPhotos => 
         prevPhotos.map(photo => ({
           ...photo,
           position: {
@@ -37,7 +32,7 @@ export const PhotoMosaic = () => {
           }
         }))
       );
-    }, 5000); // Changed to 5 seconds for smoother transitions
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
@@ -51,7 +46,7 @@ export const PhotoMosaic = () => {
       </div>
       
       <div className="relative z-10">
-        {photos.map((photo) => (
+        {animatedPhotos.map((photo) => (
           <div
             key={photo.id}
             className="photo-leaf absolute transition-all duration-1000 ease-in-out"

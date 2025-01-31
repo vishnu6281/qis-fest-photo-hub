@@ -7,7 +7,7 @@ import imageCompression from 'browser-image-compression';
 
 interface CameraProps {
   onClose: () => void;
-  onPhotoTaken: (photoData: { name: string, photo: File }) => void;
+  onPhotoTaken: (photoData: { name: string, photo: File, id: string }) => void;
   photoCount: number;
 }
 
@@ -98,19 +98,24 @@ export const Camera = ({ onClose, onPhotoTaken, photoCount }: CameraProps) => {
         const compressedFile = await imageCompression(
           new File([blob], "photo.jpg", { type: 'image/jpeg' }),
           {
-            maxSizeMB: 0.3,
-            maxWidthOrHeight: 800,
-            useWebWorker: true
+            maxSizeMB: 0.05, // 50KB
+            maxWidthOrHeight: 400,
+            useWebWorker: true,
+            initialQuality: 0.5
           }
         );
 
-        onPhotoTaken({ name, photo: compressedFile });
+        onPhotoTaken({ 
+          name, 
+          photo: compressedFile,
+          id: Date.now().toString()
+        });
         stopCamera();
       } catch (err) {
         console.error('Error compressing image:', err);
         alert('Failed to process photo. Please try again.');
       }
-    }, 'image/jpeg', 0.8);
+    }, 'image/jpeg', 0.7);
   };
 
   return (

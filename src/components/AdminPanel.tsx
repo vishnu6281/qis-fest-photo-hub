@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Photo {
   id: string;
@@ -7,11 +9,20 @@ interface Photo {
   name: string;
 }
 
-export const AdminPanel = () => {
-  const [photos, setPhotos] = useState<Photo[]>([]);
+interface AdminPanelProps {
+  photos: Photo[];
+  onDeletePhoto: (id: string) => void;
+}
+
+export const AdminPanel = ({ photos, onDeletePhoto }: AdminPanelProps) => {
+  const { toast } = useToast();
 
   const handleDelete = (id: string) => {
-    setPhotos(photos.filter(photo => photo.id !== id));
+    onDeletePhoto(id);
+    toast({
+      title: "Photo deleted",
+      description: "The photo has been successfully removed.",
+    });
   };
 
   return (
@@ -27,12 +38,13 @@ export const AdminPanel = () => {
               className="w-full h-48 object-cover rounded-lg mb-2"
             />
             <p className="font-medium">{photo.name}</p>
-            <button
+            <Button
               onClick={() => handleDelete(photo.id)}
-              className="mt-2 text-red-500 hover:text-red-700"
+              variant="destructive"
+              className="mt-2 w-full"
             >
               Delete
-            </button>
+            </Button>
           </Card>
         ))}
       </div>

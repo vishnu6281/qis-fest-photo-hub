@@ -6,14 +6,24 @@ import { useToast } from '@/components/ui/use-toast';
 import { PhotoCounter } from '@/components/PhotoCounter';
 import { Link } from 'react-router-dom';
 
+interface Photo {
+  id: string;
+  url: string;
+  name: string;
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
 const Index = () => {
   const [showCamera, setShowCamera] = useState(false);
-  const [photoCount, setPhotoCount] = useState(0);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [bgGradient, setBgGradient] = useState('from-purple-500 to-blue-500');
   const { toast } = useToast();
 
-  const handlePhotoTaken = (photoData: { name: string, photo: File }) => {
-    if (photoCount >= 3) {
+  const handlePhotoTaken = async (photoData: { name: string; photo: File; id: string }) => {
+    if (photos.length >= 3) {
       toast({
         title: "Error",
         description: "You can only upload 3 photos maximum",
@@ -22,14 +32,27 @@ const Index = () => {
       return;
     }
 
-    setPhotoCount(prev => prev + 1);
+    const url = URL.createObjectURL(photoData.photo);
+    const newPhoto: Photo = {
+      id: photoData.id,
+      url,
+      name: photoData.name,
+      position: {
+        x: Math.random() * 80,
+        y: Math.random() * 80
+      }
+    };
+
+    setPhotos(prev => [...prev, newPhoto]);
     setShowCamera(false);
     toast({
       title: "Success!",
       description: "Your photo has been added to the mosaic.",
     });
+  };
 
-    console.log('Photo taken:', photoData);
+  const handleDeletePhoto = (id: string) => {
+    setPhotos(prev => prev.filter(photo => photo.id !== id));
   };
 
   return (
@@ -45,7 +68,7 @@ const Index = () => {
               </Link>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-primary mb-4">QIS FEST 2K25</h1>
-            <PhotoCounter count={photoCount} />
+            <PhotoCounter count={photos.length} />
           </header>
 
           <div className="container mx-auto">
@@ -54,20 +77,20 @@ const Index = () => {
                 <Button 
                   onClick={() => setShowCamera(true)}
                   className="bg-primary/80 hover:bg-primary/90 text-white backdrop-blur-sm"
-                  disabled={photoCount >= 3}
+                  disabled={photos.length >= 3}
                 >
-                  Add Your Photo ({3 - photoCount} remaining)
+                  Add Your Photo ({3 - photos.length} remaining)
                 </Button>
               </div>
             ) : (
               <Camera 
                 onClose={() => setShowCamera(false)}
                 onPhotoTaken={handlePhotoTaken}
-                photoCount={photoCount}
+                photoCount={photos.length}
               />
             )}
 
-            <PhotoMosaic />
+            <PhotoMosaic photos={photos} />
           </div>
         </div>
       </div>
