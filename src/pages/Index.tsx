@@ -8,7 +8,29 @@ import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [showCamera, setShowCamera] = useState(false);
+  const [photoCount, setPhotoCount] = useState(0);
   const { toast } = useToast();
+
+  const handlePhotoTaken = (photoData: { name: string, photo: File }) => {
+    if (photoCount >= 3) {
+      toast({
+        title: "Error",
+        description: "You can only upload 3 photos maximum",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setPhotoCount(prev => prev + 1);
+    setShowCamera(false);
+    toast({
+      title: "Success!",
+      description: "Your photo has been added to the mosaic.",
+    });
+
+    // Here you would typically upload the photo to your backend
+    console.log('Photo taken:', photoData);
+  };
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -19,7 +41,7 @@ const Index = () => {
           </Link>
         </div>
         <h1 className="text-4xl md:text-6xl font-bold text-primary mb-4">QIS FEST 2K25</h1>
-        <PhotoCounter />
+        <PhotoCounter count={photoCount} />
       </header>
 
       <div className="container mx-auto">
@@ -28,20 +50,16 @@ const Index = () => {
             <Button 
               onClick={() => setShowCamera(true)}
               className="bg-primary hover:bg-primary/90 text-white"
+              disabled={photoCount >= 3}
             >
-              Add Your Photo
+              Add Your Photo ({3 - photoCount} remaining)
             </Button>
           </div>
         ) : (
           <Camera 
             onClose={() => setShowCamera(false)}
-            onPhotoTaken={() => {
-              setShowCamera(false);
-              toast({
-                title: "Success!",
-                description: "Your photo has been added to the mosaic.",
-              });
-            }}
+            onPhotoTaken={handlePhotoTaken}
+            photoCount={photoCount}
           />
         )}
 

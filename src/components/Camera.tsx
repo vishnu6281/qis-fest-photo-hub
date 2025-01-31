@@ -1,33 +1,41 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import imageCompression from 'browser-image-compression';
 
 interface CameraProps {
   onClose: () => void;
-  onPhotoTaken: () => void;
+  onPhotoTaken: (photoData: { name: string, photo: File }) => void;
+  photoCount: number;
 }
 
-export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
+export const Camera = ({ onClose, onPhotoTaken, photoCount }: CameraProps) => {
   const [name, setName] = useState('');
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const startCamera = async () => {
     try {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { 
-          facingMode: 'environment',
+          facingMode,
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
       });
+      
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        videoRef.current.play().catch(console.error);
+        await videoRef.current.play();
       }
     } catch (err) {
       console.error('Error accessing camera:', err);
@@ -42,9 +50,24 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
     }
   };
 
+  const switchCamera = () => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  };
+
+  useEffect(() => {
+    if (stream) {
+      startCamera();
+    }
+  }, [facingMode]);
+
   const takePhoto = async () => {
     if (!name.trim()) {
       alert('Please enter your name');
+      return;
+    }
+
+    if (photoCount >= 3) {
+      alert('You can only upload 3 photos maximum');
       return;
     }
 
@@ -52,50 +75,42 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    // Wait for video to be ready
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-      console.log('Video not ready yet');
-      return;
-    }
-
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
-    // Draw the current video frame
-    context.drawImage(video, 0, 0);
-
-    try {
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          throw new Error('Failed to create blob');
-        }
-
-        try {
-          const compressedFile = await imageCompression(
-            new File([blob], "photo.jpg", { type: 'image/jpeg' }),
-            {
-              maxSizeMB: 0.3,
-              maxWidthOrHeight: 800,
-              useWebWorker: true
-            }
-          );
-
-          console.log('Photo taken:', { name, photo: compressedFile });
-          stopCamera();
-          onPhotoTaken();
-        } catch (err) {
-          console.error('Error compressing image:', err);
-          alert('Failed to process photo. Please try again.');
-        }
-      }, 'image/jpeg', 0.8);
-    } catch (err) {
-      console.error('Error taking photo:', err);
-      alert('Failed to take photo. Please try again.');
+    if (facingMode === 'user') {
+      context.scale(-1, 1);
+      context.drawImage(video, -canvas.width, 0);
+    } else {
+      context.drawImage(video, 0, 0);
     }
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        alert('Failed to capture photo. Please try again.');
+        return;
+      }
+
+      try {
+        const compressedFile = await imageCompression(
+          new File([blob], "photo.jpg", { type: 'image/jpeg' }),
+          {
+            maxSizeMB: 0.3,
+            maxWidthOrHeight: 800,
+            useWebWorker: true
+          }
+        );
+
+        onPhotoTaken({ name, photo: compressedFile });
+        stopCamera();
+      } catch (err) {
+        console.error('Error compressing image:', err);
+        alert('Failed to process photo. Please try again.');
+      }
+    }, 'image/jpeg', 0.8);
   };
 
   return (
@@ -120,12 +135,17 @@ export const Camera = ({ onClose, onPhotoTaken }: CameraProps) => {
               autoPlay
               playsInline
               muted
+              style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
               className="w-full rounded-lg"
             />
             <canvas ref={canvasRef} className="hidden" />
+            <div className="flex items-center justify-between mb-4">
+              <span>Switch Camera</span>
+              <Switch onCheckedChange={switchCamera} />
+            </div>
             <div className="flex gap-2">
-              <Button onClick={takePhoto} className="flex-1">
-                Take Photo
+              <Button onClick={takePhoto} className="flex-1" disabled={photoCount >= 3}>
+                Take Photo ({3 - photoCount} remaining)
               </Button>
               <Button onClick={onClose} variant="outline" className="flex-1">
                 Cancel
