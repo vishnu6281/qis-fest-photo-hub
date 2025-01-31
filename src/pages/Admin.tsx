@@ -5,9 +5,20 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { AdminPanel } from '@/components/AdminPanel';
 
+interface Photo {
+  id: string;
+  url: string;
+  name: string;
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
 const Admin = () => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -24,8 +35,12 @@ const Admin = () => {
     }
   };
 
+  const handleDeletePhoto = (id: string) => {
+    setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== id));
+  };
+
   if (isAuthenticated) {
-    return <AdminPanel />;
+    return <AdminPanel photos={photos} onDeletePhoto={handleDeletePhoto} />;
   }
 
   return (
