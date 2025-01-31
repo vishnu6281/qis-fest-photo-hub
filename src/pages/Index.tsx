@@ -4,8 +4,7 @@ import { PhotoMosaic } from '@/components/PhotoMosaic';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { PhotoCounter } from '@/components/PhotoCounter';
-import { Link } from 'react-router-dom';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Instagram } from 'lucide-react';
 
 interface Photo {
   id: string;
@@ -57,17 +56,6 @@ const Index = () => {
       <div className="min-h-screen bg-white/90 backdrop-blur-sm transition-colors duration-1000">
         <div className="container mx-auto p-4">
           <header className="text-center mb-8">
-            <div className="flex justify-end mb-4">
-              <Link to="/admin">
-                <Button 
-                  variant="outline" 
-                  className="bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-300"
-                >
-                  <KeyRound className="w-4 h-4 mr-2" />
-                  Admin
-                </Button>
-              </Link>
-            </div>
             <h1 className="text-4xl md:text-6xl font-bold text-primary mb-4">QIS FEST 2K25</h1>
             <PhotoCounter count={photos.length} />
           </header>
@@ -92,6 +80,29 @@ const Index = () => {
             )}
 
             <PhotoMosaic photos={photos} />
+
+            <footer className="mt-8 flex flex-col items-center gap-4">
+              <Button 
+                variant="outline" 
+                className="bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-300"
+              >
+                <KeyRound className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+              
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>©2K25 By VK CREATIONS</span>
+                <a 
+                  href="https://instagram.com/thereelsstudioo" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-pink-500 hover:text-pink-600 transition-colors"
+                >
+                  <Instagram className="w-4 h-4" />
+                  @thereelsstudioo
+                </a>
+              </div>
+            </footer>
           </div>
         </div>
       </div>
