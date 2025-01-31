@@ -11,22 +11,22 @@ interface Photo {
 }
 
 const colors = [
-  'bg-purple-500',
-  'bg-blue-500',
-  'bg-green-500',
-  'bg-yellow-500',
-  'bg-red-500',
-  'bg-pink-500',
-  'bg-indigo-500',
+  'from-purple-500 to-blue-500',
+  'from-blue-500 to-green-500',
+  'from-green-500 to-yellow-500',
+  'from-yellow-500 to-red-500',
+  'from-red-500 to-pink-500',
+  'from-pink-500 to-indigo-500',
+  'from-indigo-500 to-purple-500',
 ];
 
 export const PhotoMosaic = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [bgColor, setBgColor] = useState(colors[0]);
+  const [bgGradient, setBgGradient] = useState(colors[0]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setBgColor(colors[Math.floor(Math.random() * colors.length)]);
+      setBgGradient(colors[Math.floor(Math.random() * colors.length)]);
       
       setPhotos(prevPhotos => 
         prevPhotos.map(photo => ({
@@ -37,7 +37,7 @@ export const PhotoMosaic = () => {
           }
         }))
       );
-    }, 3000);
+    }, 5000); // Changed to 5 seconds for smoother transitions
 
     return () => clearInterval(interval);
   }, []);
@@ -45,7 +45,7 @@ export const PhotoMosaic = () => {
   return (
     <div className="relative min-h-[600px] w-full overflow-hidden">
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className={`tree-text text-8xl opacity-20 select-none transition-colors duration-500 ${bgColor}`}>
+        <div className="tree-text text-8xl opacity-20 select-none">
           QIS FEST 2K25
         </div>
       </div>

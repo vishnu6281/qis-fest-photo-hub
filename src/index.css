@@ -53,3 +53,8 @@
   0%, 100% { transform: rotate(-3deg); }
   50% { transform: rotate(3deg); }
 }
+
+/* Add smooth transition for all color changes */
+* {
+  transition: background-color 1s ease-in-out, color 1s ease-in-out;
+}
