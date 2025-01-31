@@ -49,18 +49,19 @@ export const PhotoMosaic = ({ photos }: PhotoMosaicProps) => {
         {animatedPhotos.map((photo) => (
           <div
             key={photo.id}
-            className="photo-leaf absolute transition-all duration-1000 ease-in-out"
+            className="photo-leaf absolute transition-all duration-[3000ms] ease-in-out hover:scale-110"
             style={{
               width: '60px',
               height: '60px',
               left: `${photo.position.x}%`,
               top: `${photo.position.y}%`,
+              transform: `rotate(${Math.random() * 360}deg)`,
             }}
           >
             <img
               src={photo.url}
               alt={photo.name}
-              className="w-full h-full object-cover rounded-full"
+              className="w-full h-full object-cover rounded-full border-2 border-white/50 shadow-lg"
               title={photo.name}
             />
           </div>

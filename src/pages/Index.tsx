@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { PhotoCounter } from '@/components/PhotoCounter';
 import { Link } from 'react-router-dom';
+import { KeyRound } from 'lucide-react';
 
 interface Photo {
   id: string;
@@ -51,10 +52,6 @@ const Index = () => {
     });
   };
 
-  const handleDeletePhoto = (id: string) => {
-    setPhotos(prev => prev.filter(photo => photo.id !== id));
-  };
-
   return (
     <div className={`min-h-screen bg-gradient-to-r ${bgGradient} transition-colors duration-1000 ease-in-out`}>
       <div className="min-h-screen bg-white/90 backdrop-blur-sm transition-colors duration-1000">
@@ -62,8 +59,12 @@ const Index = () => {
           <header className="text-center mb-8">
             <div className="flex justify-end mb-4">
               <Link to="/admin">
-                <Button variant="outline" className="bg-white/50 backdrop-blur-sm hover:bg-white/70">
-                  Admin Panel
+                <Button 
+                  variant="outline" 
+                  className="bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-300"
+                >
+                  <KeyRound className="w-4 h-4 mr-2" />
+                  Admin
                 </Button>
               </Link>
             </div>
@@ -76,7 +77,7 @@ const Index = () => {
               <div className="text-center mb-8">
                 <Button 
                   onClick={() => setShowCamera(true)}
-                  className="bg-primary/80 hover:bg-primary/90 text-white backdrop-blur-sm"
+                  className="bg-primary/80 hover:bg-primary/90 text-white backdrop-blur-sm transition-all duration-300"
                   disabled={photos.length >= 3}
                 >
                   Add Your Photo ({3 - photos.length} remaining)
